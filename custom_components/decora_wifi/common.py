@@ -16,7 +16,8 @@ from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Event, HomeAssistant
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers import device_registry
+from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,10 +29,20 @@ NOTIFICATION_TITLE = "myLeviton Decora Setup"
 class BaseDecoraWifiEntity(Entity):
     """Encapsulates common functionality for all Decora Wifi switches."""
 
-    def __init__(self, switch: IotSwitch) -> None:
-        """Initialize BaseDecoraWifiEntity."""
-        self._switch = switch
-        self._attr_unique_id = str(switch.id)
+    def __init__(self, device: IotSwitch) -> None:                                    
+        """Initialize Decora Wifi device base class."""                               
+        self._switch = device                                                         
+        self._model = self._switch.model                                              
+        self._mac_address = self._switch.mac                                          
+        self._attr_name = self._switch.name                                           
+        self._attr_unique_id = self._mac_address                                      
+        self._attr_device_info = DeviceInfo(                                          
+            name=self._switch.name,                                                   
+            connections={(device_registry.CONNECTION_NETWORK_MAC, self._mac_address)},
+            manufacturer=self._switch.manufacturer,                                   
+            model=self._model,                                                        
+            sw_version=self._switch.version,                                          
+        )
 
     @property
     def name(self) -> str:
